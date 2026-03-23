@@ -59,9 +59,9 @@ for path in filepaths
     tacells = readtimearray("cells.csv", delim=',')
     tapack = readtimearray("pack.csv", delim=',')
 
-    tatemperature = retime(tatemperature, Second(1), downsample=Mean())
-    tacells = retime(tacells, Second(1), downsample=Mean())
-    tapack = retime(tapack, Second(1), downsample=Mean())
+    tatemperature = retime(tatemperature, Millisecond(100))
+    tacells = retime(tacells, Millisecond(100))
+    tapack = retime(tapack, Millisecond(100))
 
     ## Plot the Data 
     tstemperature = timestamp(tatemperature)
