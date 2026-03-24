@@ -2,4 +2,4 @@
 *.html
 *.svg
 *.csv
-!Democapture*.*
+!Democapture.dat

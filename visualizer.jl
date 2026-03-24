@@ -58,9 +58,9 @@ for path in filepaths
     CSV.write("cells.csv", dfcells)
     CSV.write("pack.csv", dfpack)
     ##
-    tatemperature = readtimearray("temperature.csv", delim=',')
-    tacells = readtimearray("cells.csv", delim=',')
-    tapack = readtimearray("pack.csv", delim=',')
+    tatemperature = TimeArray(dftemperature, timestamp=:Datum)
+    tacells = TimeArray(dfcells, timestamp=:Datum)
+    tapack = TimeArray(dfpack, timestamp=:Datum)
 
     tatemperature = retime(tatemperature, Millisecond(100))
     tacells = retime(tacells, Millisecond(100))
@@ -114,6 +114,10 @@ for path in filepaths
         plot!(plt, trel_s, ylabel="Temperature in °C", Ytemperature[:, i], label=lbltemperature[i], lw=1.8)
     end
     display(plt)
+
+    mkpath("output/html")
+    mkpath("output/svg")
+
     Plots.savefig(htmlnametemperature)
     Plots.savefig(svgnametemperature)
 
