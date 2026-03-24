@@ -37,6 +37,7 @@ for path in filepaths
     display(df)
     ## Correct columns types
     CSV.write("temp.csv", df; delim=(";"))
+
     df = DataFrame(
         CSV.read(
             "temp.csv",
@@ -46,27 +47,19 @@ for path in filepaths
             dateformat="dd.mm.yyyy HH:MM:SS,sss"
         )
     )
-
+    ## Select the diffrent types of messurments
     dftemperature = select(df, Cols("Datum", r"csca_t[1-4]"))
     dfcells = select(df, Cols("Datum", r"csca_uc[1-9]"))
     dfpack = select(df, Cols("Datum", "csca_upack[]"))
+    ## Sort them (there is some error because of unsorted timefield no idea why its unsorted)
     sort!(dftemperature, :Datum)
     sort!(dfcells, :Datum)
     sort!(dfpack, :Datum)
-    ##
-    CSV.write("temperature.csv", dftemperature;)
-    CSV.write("cells.csv", dfcells)
-    CSV.write("pack.csv", dfpack)
-    ##
+    ## Load in Timearray
     tatemperature = TimeArray(dftemperature, timestamp=:Datum)
     tacells = TimeArray(dfcells, timestamp=:Datum)
     tapack = TimeArray(dfpack, timestamp=:Datum)
-
-    tatemperature = retime(tatemperature, Millisecond(100))
-    tacells = retime(tacells, Millisecond(100))
-    tapack = retime(tapack, Millisecond(100))
-
-    ## Plot the Data 
+    ## Seperate Time Data and Labels
     tstemperature = timestamp(tatemperature)
     Ytemperature = values(tatemperature)
     lbltemperature = String.(colnames(tatemperature))
@@ -81,12 +74,12 @@ for path in filepaths
     Ypack = values(tapack)
     lblpack = String.(colnames(tapack))
     @assert size(Ypack, 2) == length(lblpack)
-    ##
+    ## Get start time for relative plot
     t0 = tstemperature[1]
     trel_s = Float64.(Dates.value.(tstemperature .- t0)) ./ 1000
 
     plotlyjs()
-
+    ## Get filenames from initial file
     basename_noext = splitext(basename(file))[1]
     htmlnametemperature = "output/html/" * basename_noext * "_temperature.html"
     svgnametemperature = "output/svg/" * basename_noext * "_temperature.svg"
@@ -96,7 +89,7 @@ for path in filepaths
 
     htmlnamepack = "output/html/" * basename_noext * "_pack.html"
     svgnamepack = "output/svg/" * basename_noext * "_pack.svg"
-    ##
+    ##Plot and save plots
     mmss_formatter = x -> begin
         s = max(0, round(Int, x))
         m, s = divrem(s, 60)
@@ -150,11 +143,5 @@ for path in filepaths
     Plots.savefig(htmlnamepack)
     Plots.savefig(svgnamepack)
     display(plt)
-
-
-
-
-
-
 
 end
