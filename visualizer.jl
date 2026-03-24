@@ -47,9 +47,12 @@ for path in filepaths
         )
     )
 
-    dftemperature = select(df, Cols("Datum", r"csca_t[1-9]"))
+    dftemperature = select(df, Cols("Datum", r"csca_t[1-4]"))
     dfcells = select(df, Cols("Datum", r"csca_uc[1-9]"))
     dfpack = select(df, Cols("Datum", "csca_upack[]"))
+    sort!(dftemperature, :Datum)
+    sort!(dfcells, :Datum)
+    sort!(dfpack, :Datum)
     ##
     CSV.write("temperature.csv", dftemperature;)
     CSV.write("cells.csv", dfcells)
