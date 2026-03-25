@@ -106,7 +106,7 @@ for path in filepaths
     for i in 1:size(Ytemperature, 2)
         plot!(plt, trel_s, ylabel="Temperature in °C", Ytemperature[:, i], label=lbltemperature[i], lw=1.8)
     end
-    display(plt)
+    #display(plt)
 
     mkpath("output/html")
     mkpath("output/svg")
@@ -123,7 +123,7 @@ for path in filepaths
     for i in 1:size(Ycells, 2)
         plot!(plt, trel_s, ylabel="Cellvoltage in mV", Ycells[:, i], label=lblcells[i], lw=1.8)
     end
-    display(plt)
+    #display(plt)
 
     Plots.savefig(htmlnamecells)
     Plots.savefig(svgnamecells)
@@ -142,6 +142,6 @@ for path in filepaths
 
     Plots.savefig(htmlnamepack)
     Plots.savefig(svgnamepack)
-    display(plt)
+    #display(plt)
 
 end
