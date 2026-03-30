@@ -1,26 +1,23 @@
-#using Pkg
-#Pkg.activate(".")
-#Pkg.instantiate()
-##
+## See Readme for installation and usage
+## initialising and installing needed Pkgs
+using Pkg
+Pkg.activate(".")
+Pkg.instantiate()
+
+## loading needed Pkgs
 using CSV
 using DataFrames
 using Plots
 using TimeSeries
 using Dates
 using Printf
-#####################Config
 
-#####################
-
-## Helper Functions
-
-
-##
+## loading all files in input directory
 filepaths = readdir("input/", join=true)
-##
+
+## stepping through all files
 for path in filepaths
     file = path
-
 
     ## Load CSV into Dataframe
     df = DataFrame(CSV.File(file; delim="\t"))
@@ -29,15 +26,12 @@ for path in filepaths
     df = df[5:end, :]
 
     ## correctly name the columns
-
-
     DataFrames.rename!(df, Symbol.(Vector(df[1, :])))
     df = df[2:end, :]
-
     display(df)
+
     ## Correct columns types
     CSV.write("temp.csv", df; delim=(";"))
-
     df = DataFrame(
         CSV.read(
             "temp.csv",
@@ -47,18 +41,22 @@ for path in filepaths
             dateformat="dd.mm.yyyy HH:MM:SS,sss"
         )
     )
+
     ## Select the diffrent types of messurments
     dftemperature = select(df, Cols("Datum", r"csca_t[1-4]"))
     dfcells = select(df, Cols("Datum", r"csca_uc[1-9]"))
     dfpack = select(df, Cols("Datum", "csca_upack[]"))
+
     ## Sort them (there is some error because of unsorted timefield no idea why its unsorted)
     sort!(dftemperature, :Datum)
     sort!(dfcells, :Datum)
     sort!(dfpack, :Datum)
+
     ## Load in Timearray
     tatemperature = TimeArray(dftemperature, timestamp=:Datum)
     tacells = TimeArray(dfcells, timestamp=:Datum)
     tapack = TimeArray(dfpack, timestamp=:Datum)
+
     ## Seperate Time Data and Labels
     tstemperature = timestamp(tatemperature)
     Ytemperature = values(tatemperature)
@@ -74,11 +72,13 @@ for path in filepaths
     Ypack = values(tapack)
     lblpack = String.(colnames(tapack))
     @assert size(Ypack, 2) == length(lblpack)
+
     ## Get start time for relative plot
     t0 = tstemperature[1]
     trel_s = Float64.(Dates.value.(tstemperature .- t0)) ./ 1000
 
     plotlyjs()
+
     ## Get filenames from initial file
     basename_noext = splitext(basename(file))[1]
     htmlnametemperature = "output/html/" * basename_noext * "_temperature.html"
@@ -89,6 +89,7 @@ for path in filepaths
 
     htmlnamepack = "output/html/" * basename_noext * "_pack.html"
     svgnamepack = "output/svg/" * basename_noext * "_pack.svg"
+
     ##Plot and save plots
     mmss_formatter = x -> begin
         s = max(0, round(Int, x))
