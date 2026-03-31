@@ -42,53 +42,54 @@ for path in filepaths
         )
     )
 
-    ## Select the diffrent types of messurments
-    dftemperature = select(df, Cols("Datum", r"csca_t[1-4]"))
-    dfcells = select(df, Cols("Datum", r"csca_uc[1-9]"))
-    dfpack = select(df, Cols("Datum", "csca_upack[]"))
+    ## Select the different types of messurments
+    dfarray = [
+        select(df, Cols("Datum", r"csca_t[1-4]")),
+        select(df, Cols("Datum", r"csca_uc[1-9]")),
+        select(df, Cols("Datum", "csca_upack[]"))]
 
+    filename = [
+        "temperature",
+        "cells",
+        "pack"
+    ]
     ## Sort them (there is some error because of unsorted timefield no idea why its unsorted)
-    sort!(dftemperature, :Datum)
-    sort!(dfcells, :Datum)
-    sort!(dfpack, :Datum)
+    for df in dfarray
+        sort!(df, :Datum)
+    end
 
     ## Load in Timearray
-    tatemperature = TimeArray(dftemperature, timestamp=:Datum)
-    tacells = TimeArray(dfcells, timestamp=:Datum)
-    tapack = TimeArray(dfpack, timestamp=:Datum)
+    taarray = []
+    for df in dfarray
+        ta = TimeArray(df, timestamp=:Datum)
+        push!(taarray, ta)
+    end
 
     ## Seperate Time Data and Labels
-    tstemperature = timestamp(tatemperature)
-    Ytemperature = values(tatemperature)
-    lbltemperature = String.(colnames(tatemperature))
-    @assert size(Ytemperature, 2) == length(lbltemperature)
-
-    tscells = timestamp(tacells)
-    Ycells = values(tacells)
-    lblcells = String.(colnames(tacells))
-    @assert size(Ycells, 2) == length(lblcells)
-
-    tspack = timestamp(tapack)
-    Ypack = values(tapack)
-    lblpack = String.(colnames(tapack))
-    @assert size(Ypack, 2) == length(lblpack)
+    ts = []
+    Y = []
+    lbl = []
+    for ta in taarray
+        push!(ts, timestamp(ta))
+        push!(Y, values(ta))
+        push!(lbl, String.(colnames(ta)))
+    end
 
     ## Get start time for relative plot
-    t0 = tstemperature[1]
-    trel_s = Float64.(Dates.value.(tstemperature .- t0)) ./ 1000
+    t0 = ts[1][1]
+    trel_s = Float64.(Dates.value.(ts[1] .- t0)) ./ 1000
 
     plotlyjs()
 
     ## Get filenames from initial file
     basename_noext = splitext(basename(file))[1]
-    htmlnametemperature = "output/html/" * basename_noext * "_temperature.html"
-    svgnametemperature = "output/svg/" * basename_noext * "_temperature.svg"
+    htmlname = []
+    svgname = []
 
-    htmlnamecells = "output/html/" * basename_noext * "_cells.html"
-    svgnamecells = "output/svg/" * basename_noext * "_cells.svg"
-
-    htmlnamepack = "output/html/" * basename_noext * "_pack.html"
-    svgnamepack = "output/svg/" * basename_noext * "_pack.svg"
+    for name in filename
+        push!(htmlname, "output/html/" * basename_noext * "_" * name * ".html")
+        push!(svgname, "output/svg/" * basename_noext * "_" * name * ".svg")
+    end
 
     ##Plot and save plots
     mmss_formatter = x -> begin
@@ -97,52 +98,22 @@ for path in filepaths
         @sprintf("%02d:%02d", m, s)
     end
 
-    plt = Plots.plot(
-        title=basename_noext,
-        xlabel="Time",
-        xformatter=mmss_formatter,
-        size=[1500, 750],
-    )
-
-    for i in 1:size(Ytemperature, 2)
-        plot!(plt, trel_s, ylabel="Temperature in °C", Ytemperature[:, i], label=lbltemperature[i], lw=1.8)
-    end
-    #display(plt)
-
     mkpath("output/html")
     mkpath("output/svg")
 
-    Plots.savefig(htmlnametemperature)
-    Plots.savefig(svgnametemperature)
-
-    plt = Plots.plot(
-        title=basename_noext,
-        xlabel="Time",
-        xformatter=mmss_formatter,
-        size=[1500, 750],
-    )
-    for i in 1:size(Ycells, 2)
-        plot!(plt, trel_s, ylabel="Cellvoltage in mV", Ycells[:, i], label=lblcells[i], lw=1.8)
-    end
-    #display(plt)
-
-    Plots.savefig(htmlnamecells)
-    Plots.savefig(svgnamecells)
-
-
-    plt = Plots.plot(
-        title=basename_noext,
-        xlabel="Time",
-        xformatter=mmss_formatter,
-        size=[1500, 750],
-    )
-
-    for i in 1:size(Ypack, 2)
-        plot!(plt, trel_s, ylabel="Packvoltage in V", Ypack[:, i], label=lblpack[i], lw=1.8)
+    for i in 1:size(taarray, 1)
+        plt = Plots.plot(
+            title=basename_noext,
+            xlabel="Time",
+            xformatter=mmss_formatter,
+            size=[1500, 750],
+        )
+        for j in 1:size(Y[i], 2)
+            plot!(plt, trel_s, ylabel="Test", Y[i][:, j], label=lbl[i][j], lw=1.8)
+        end
+        Plots.savefig(htmlname[i])
+        Plots.savefig(svgname[i])
     end
 
-    Plots.savefig(htmlnamepack)
-    Plots.savefig(svgnamepack)
-    #display(plt)
 
 end
