@@ -114,6 +114,4 @@ for path in filepaths
         Plots.savefig(htmlname[i])
         Plots.savefig(svgname[i])
     end
-
-
 end
