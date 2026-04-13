@@ -1,8 +1,8 @@
 ## See Readme for installation and usage
 ## initialising and installing needed Pkgs
-using Pkg
-Pkg.activate(".")
-Pkg.instantiate()
+#using Pkg
+#Pkg.activate(".")
+#Pkg.instantiate()
 
 ## loading needed Pkgs
 using CSV
@@ -11,6 +11,10 @@ using Plots
 using TimeSeries
 using Dates
 using Printf
+
+#Set used decimal separator ',' or '.'
+decimalpoint = ','
+
 
 ## loading all files in input directory
 filepaths = readdir("input/", join=true)
@@ -24,6 +28,7 @@ for path in filepaths
 
     ## Cut beginning of unneeded Data 
     df = df[5:end, :]
+    df = replace.(df, "\xb0" => "°")
 
     ## correctly name the columns
     DataFrames.rename!(df, Symbol.(Vector(df[1, :])))
@@ -37,7 +42,7 @@ for path in filepaths
             "temp.csv",
             DataFrame;
             delim=';',
-            decimal=',',
+            decimal=decimalpoint,
             dateformat="dd.mm.yyyy HH:MM:SS,sss"
         )
     )
